@@ -92,9 +92,9 @@ const defaultConfig = {
   prefetchCount: 10,
   defaultExchangeType: 'topic',
   defaultRpcErrorHandler: getHandlerForLegacyBehavior(
-    MessageHandlerErrorBehavior.REQUEUE
+    MessageHandlerErrorBehavior.NACK
   ),
-  defaultSubscribeErrorBehavior: MessageHandlerErrorBehavior.REQUEUE,
+  defaultSubscribeErrorBehavior: MessageHandlerErrorBehavior.NACK,
   exchanges: [],
   exchangeBindings: [],
   queues: [],
@@ -473,7 +473,7 @@ export class AmqpConnection {
             throw new Error('Received null message');
           }
 
-          const response = await this.handleMessage(handler, msg, {
+          const response = await this.handleMessage<any, any>(handler, msg, {
             allowNonJsonMessages: msgOptions.allowNonJsonMessages,
             deserializer: msgOptions.deserializer,
           });
@@ -563,6 +563,16 @@ export class AmqpConnection {
     const { consumerTag }: { consumerTag: ConsumerTag } = await channel.consume(
       queue,
       this.wrapConsumer(async (msg) => {
+        const maybeAck = () => {
+          if (!rpcOptions.queueOptions?.consumerOptions?.noAck && msg != null) {
+            channel.ack(msg);
+          }
+        };
+        const maybeNack = () => {
+          if (!rpcOptions.queueOptions?.consumerOptions?.noAck && msg != null) {
+            channel.nack(msg, false, false);
+          }
+        };
         try {
           if (msg == null) {
             throw new Error('Received null message');
@@ -571,7 +581,7 @@ export class AmqpConnection {
           if (
             !matchesRoutingKey(msg.fields.routingKey, rpcOptions.routingKey)
           ) {
-            channel.nack(msg, false, false);
+            maybeNack();
             this.logger.error(
               'Received message with invalid routing key: ' +
                 msg.fields.routingKey
@@ -585,21 +595,11 @@ export class AmqpConnection {
           });
 
           if (response instanceof Nack) {
-            channel.nack(msg, false, response.requeue);
+            maybeNack();
             return;
           }
-
-          const { replyTo, correlationId, expiration, headers } =
-            msg.properties;
-          if (replyTo) {
-            await this.publish('', replyTo, response, {
-              correlationId,
-              expiration,
-              headers,
-              persistent: rpcOptions.usePersistentReplyTo ?? false,
-            });
-          }
-          channel.ack(msg);
+          await this.publishResponse(msg, response, rpcOptions);
+          maybeAck();
         } catch (e) {
           if (msg == null) {
             return;
@@ -612,6 +612,7 @@ export class AmqpConnection {
                   this.config.defaultSubscribeErrorBehavior
               );
 
+            await this.publishResponse(msg, e, rpcOptions, true);
             await errorHandler(channel, msg, e);
           }
         }
@@ -628,6 +629,27 @@ export class AmqpConnection {
     });
 
     return consumerTag;
+  }
+
+  private async publishResponse<U>(
+    msg: ConsumeMessage,
+    response: U,
+    rpcOptions: MessageHandlerOptions,
+    isError = false
+  ) {
+    const result = {
+      data: isError ? null : response,
+      error: isError ? response : null,
+    };
+    const { replyTo, correlationId, expiration, headers } = msg.properties;
+    if (replyTo) {
+      await this.publish('', replyTo, result, {
+        correlationId,
+        expiration,
+        headers,
+        persistent: rpcOptions.usePersistentReplyTo ?? false,
+      });
+    }
   }
 
   public publish<T = any>(
@@ -738,6 +760,7 @@ export class AmqpConnection {
               bindQueueArguments
             );
           }
+          return null;
         })
       );
     }
