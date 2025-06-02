@@ -563,13 +563,15 @@ export class AmqpConnection {
     const { consumerTag }: { consumerTag: ConsumerTag } = await channel.consume(
       queue,
       this.wrapConsumer(async (msg) => {
+        const noAck = rpcOptions.queueOptions?.consumerOptions?.noAck ?? false;
+
         const maybeAck = () => {
-          if (!rpcOptions.queueOptions?.consumerOptions?.noAck && msg != null) {
+          if (!noAck && msg != null) {
             channel.ack(msg);
           }
         };
         const maybeNack = () => {
-          if (!rpcOptions.queueOptions?.consumerOptions?.noAck && msg != null) {
+          if (!noAck && msg != null) {
             channel.nack(msg, false, false);
           }
         };
@@ -604,16 +606,19 @@ export class AmqpConnection {
           if (msg == null) {
             return;
           } else {
-            const errorHandler =
-              rpcOptions.errorHandler ||
-              this.config.defaultRpcErrorHandler ||
-              getHandlerForLegacyBehavior(
-                rpcOptions.errorBehavior ||
-                  this.config.defaultSubscribeErrorBehavior
-              );
-
             await this.publishResponse(msg, e, rpcOptions, true);
-            await errorHandler(channel, msg, e);
+
+            // Error handlers are ack/noack
+            if (!noAck) {
+              const errorHandler =
+                rpcOptions.errorHandler ||
+                this.config.defaultRpcErrorHandler ||
+                getHandlerForLegacyBehavior(
+                  rpcOptions.errorBehavior ||
+                    this.config.defaultSubscribeErrorBehavior
+                );
+              await errorHandler(channel, msg, e);
+            }
           }
         }
       }),
