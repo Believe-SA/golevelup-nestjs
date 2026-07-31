@@ -37,7 +37,7 @@
     "@golevelup/nestjs-discovery": "workspace:^",
     "amqp-connection-manager": "^4.1.14",
     "amqplib": "^0.10.7",
-    "lodash": "^4.17.21"
+    "lodash": "^4.18.1"
   },
   "devDependencies": {
     "@types/amqplib": "^0.10.7"
