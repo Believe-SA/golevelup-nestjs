@@ -37,7 +37,10 @@ describe('Rabbit RPC', () => {
       },
     });
 
-    expect(response).toEqual({ echo: { request: 'val' } });
+    expect(response).toEqual({
+      data: { echo: { request: 'val' } },
+      error: null,
+    });
   });
 
   it('multiple RPC handler should receive a valid RPC response in parallel', async () => {
@@ -63,8 +66,14 @@ describe('Rabbit RPC', () => {
       },
     });
 
-    expect(firstResponse).toEqual({ echo: { request: 'first request' } });
-    expect(secondResponse).toEqual({ echo: { request: 'second request' } });
+    expect(firstResponse).toEqual({
+      data: { echo: { request: 'first request' } },
+      error: null,
+    });
+    expect(secondResponse).toEqual({
+      data: { echo: { request: 'second request' } },
+      error: null,
+    });
   });
 
   it('intercepted RPC handler should receive a transformed RPC response', async () => {
@@ -73,7 +82,10 @@ describe('Rabbit RPC', () => {
       routingKey: 'intercepted-rpc',
     });
 
-    expect(response).toEqual({ transformed: { message: 42 } });
+    expect(response).toEqual({
+      data: { transformed: { message: 42 } },
+      error: null,
+    });
   });
 
   it('error reply RPC handler with non-JSON message should return an RPC error response', async () => {
@@ -83,8 +95,7 @@ describe('Rabbit RPC', () => {
       payload: Buffer.from('{a:'),
     });
 
-    expect(response).toHaveProperty('message');
-    expect(response).toMatchObject({ status: 'error' });
+    expect(response).toMatchObject({ data: null, error: expect.any(Object) });
   });
 
   it('non-JSON RPC handler with should receive a valid RPC response', async () => {
@@ -96,7 +107,10 @@ describe('Rabbit RPC', () => {
       },
     });
 
-    expect(response).toEqual({ echo: { request: 'val' } });
+    expect(response).toEqual({
+      data: { echo: { request: 'val' } },
+      error: null,
+    });
   });
 
   it('non-JSON RPC handler with undefined message should receive a valid RPC response', async () => {
@@ -106,7 +120,7 @@ describe('Rabbit RPC', () => {
       payload: Buffer.alloc(0),
     });
 
-    expect(response).toEqual({ echo: '' });
+    expect(response).toEqual({ data: { echo: '' }, error: null });
   });
 
   it('non-JSON RPC handler with unparsable message should receive a valid RPC response', async () => {
@@ -116,6 +130,6 @@ describe('Rabbit RPC', () => {
       payload: Buffer.from('{a:'),
     });
 
-    expect(response).toEqual({ echo: '{a:' });
+    expect(response).toEqual({ data: { echo: '{a:' }, error: null });
   });
 });

@@ -1,5 +1,6 @@
 import {
   AmqpConnection,
+  MessageHandlerErrorBehavior,
   RabbitMQModule,
   RabbitSubscribe,
 } from '@golevelup/nestjs-rabbitmq';
@@ -61,10 +62,13 @@ class SubscribeService {
     testHandler(message);
   }
 
+  // Shares subscribeQueue with the non-JSON handler: a non-JSON message
+  // landing here only reaches its handler if it is requeued.
   @RabbitSubscribe({
     exchange,
     routingKey: [routingKey1, routingKey2],
     queue: 'subscribeQueue',
+    errorBehavior: MessageHandlerErrorBehavior.REQUEUE,
   })
   handleSubscribe(message: object) {
     testHandler(message);

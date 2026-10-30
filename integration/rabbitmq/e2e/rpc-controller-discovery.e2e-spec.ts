@@ -37,7 +37,10 @@ describe('Rabbit Controller RPC', () => {
       },
     });
 
-    expect(response).toEqual({ echo: { request: 'val' } });
+    expect(response).toEqual({
+      data: { echo: { request: 'val' } },
+      error: null,
+    });
   });
 
   it('intercepted RPC handler should receive a transformed RPC response', async () => {
@@ -46,7 +49,10 @@ describe('Rabbit Controller RPC', () => {
       routingKey: 'intercepted-rpc-2',
     });
 
-    expect(response).toEqual({ transformed: { message: 42 } });
+    expect(response).toEqual({
+      data: { transformed: { message: 42 } },
+      error: null,
+    });
   });
 
   it('guarded RPC handler should receive a RPC error response', async () => {
@@ -56,8 +62,7 @@ describe('Rabbit Controller RPC', () => {
       payload: 41,
     });
 
-    expect(response).toHaveProperty('message');
-    expect(response).toMatchObject({ status: 'error' });
+    expect(response).toMatchObject({ data: null, error: expect.any(Object) });
   });
 
   it('guarded RPC handler should receive a RPC response', async () => {
@@ -67,7 +72,7 @@ describe('Rabbit Controller RPC', () => {
       payload: 42,
     });
 
-    expect(response).toEqual({ message: 'success' });
+    expect(response).toEqual({ data: { message: 'success' }, error: null });
   });
 
   it('piped RPC handler should receive a RPC error response', async () => {
@@ -77,8 +82,7 @@ describe('Rabbit Controller RPC', () => {
       payload: 41,
     });
 
-    expect(response).toHaveProperty('message');
-    expect(response).toMatchObject({ status: 'error' });
+    expect(response).toMatchObject({ data: null, error: expect.any(Object) });
   });
 
   it('piped RPC handler should receive a RPC response', async () => {
@@ -88,7 +92,7 @@ describe('Rabbit Controller RPC', () => {
       payload: 42,
     });
 
-    expect(response).toEqual({ message: 42 });
+    expect(response).toEqual({ data: { message: 42 }, error: null });
   });
 
   it('piped RPC handler should receive a RPC error response', async () => {
@@ -98,8 +102,7 @@ describe('Rabbit Controller RPC', () => {
       payload: 41,
     });
 
-    expect(response).toHaveProperty('message');
-    expect(response).toMatchObject({ status: 'error' });
+    expect(response).toMatchObject({ data: null, error: expect.any(Object) });
   });
 
   it('piped RPC handler should receive a RPC response', async () => {
@@ -109,7 +112,7 @@ describe('Rabbit Controller RPC', () => {
       payload: 42,
     });
 
-    expect(response).toEqual({ message: 42 });
+    expect(response).toEqual({ data: { message: 42 }, error: null });
   });
 
   it('error reply RPC handler with non-JSON message should return an RPC error response', async () => {
@@ -119,8 +122,7 @@ describe('Rabbit Controller RPC', () => {
       payload: Buffer.from('{a:'),
     });
 
-    expect(response).toHaveProperty('message');
-    expect(response).toMatchObject({ status: 'error' });
+    expect(response).toMatchObject({ data: null, error: expect.any(Object) });
   });
 
   it('non-JSON RPC handler with should receive a valid RPC response', async () => {
@@ -132,7 +134,10 @@ describe('Rabbit Controller RPC', () => {
       },
     });
 
-    expect(response).toEqual({ echo: { request: 'val' } });
+    expect(response).toEqual({
+      data: { echo: { request: 'val' } },
+      error: null,
+    });
   });
 
   it('non-JSON RPC handler with undefined message should receive a valid RPC response', async () => {
@@ -142,7 +147,7 @@ describe('Rabbit Controller RPC', () => {
       payload: Buffer.alloc(0),
     });
 
-    expect(response).toEqual({ echo: '' });
+    expect(response).toEqual({ data: { echo: '' }, error: null });
   });
 
   it('non-JSON RPC handler with unparsable message should receive a valid RPC response', async () => {
@@ -152,7 +157,7 @@ describe('Rabbit Controller RPC', () => {
       payload: Buffer.from('{a:'),
     });
 
-    expect(response).toEqual({ echo: '{a:' });
+    expect(response).toEqual({ data: { echo: '{a:' }, error: null });
   });
 
   it('hash wildcard RPC handler should receive a valid RPC response', async () => {
@@ -162,7 +167,10 @@ describe('Rabbit Controller RPC', () => {
     });
 
     expect(response).toEqual({
-      message: 'success-hash-wildcard-rpc.#',
+      data: {
+        message: 'success-hash-wildcard-rpc.#',
+      },
+      error: null,
     });
   });
 
@@ -173,7 +181,10 @@ describe('Rabbit Controller RPC', () => {
     });
 
     expect(response).toEqual({
-      message: 'success-star-wildcard-rpc.*.end',
+      data: {
+        message: 'success-star-wildcard-rpc.*.end',
+      },
+      error: null,
     });
   });
 
@@ -186,7 +197,10 @@ describe('Rabbit Controller RPC', () => {
       },
     });
 
-    expect(response).toEqual({ echo: { request: 'val' } });
+    expect(response).toEqual({
+      data: { echo: { request: 'val' } },
+      error: null,
+    });
   });
 
   it('SUBMODULE: intercepted RPC handler should receive a transformed RPC response', async () => {
@@ -195,7 +209,10 @@ describe('Rabbit Controller RPC', () => {
       routingKey: 'intercepted-rpc-submodule',
     });
 
-    expect(response).toEqual({ transformed: { message: 42 } });
+    expect(response).toEqual({
+      data: { transformed: { message: 42 } },
+      error: null,
+    });
   });
 
   it('SUBMODULE: guarded RPC handler should receive a RPC error response', async () => {
@@ -205,8 +222,7 @@ describe('Rabbit Controller RPC', () => {
       payload: 41,
     });
 
-    expect(response).toHaveProperty('message');
-    expect(response).toMatchObject({ status: 'error' });
+    expect(response).toMatchObject({ data: null, error: expect.any(Object) });
   });
 
   it('SUBMODULE: guarded RPC handler should receive a RPC response', async () => {
@@ -216,7 +232,7 @@ describe('Rabbit Controller RPC', () => {
       payload: 42,
     });
 
-    expect(response).toEqual({ message: 'success' });
+    expect(response).toEqual({ data: { message: 'success' }, error: null });
   });
 
   it('SUBMODULE: piped RPC handler should receive a RPC error response', async () => {
@@ -226,8 +242,7 @@ describe('Rabbit Controller RPC', () => {
       payload: 41,
     });
 
-    expect(response).toHaveProperty('message');
-    expect(response).toMatchObject({ status: 'error' });
+    expect(response).toMatchObject({ data: null, error: expect.any(Object) });
   });
 
   it('SUBMODULE: piped RPC handler should receive a RPC response', async () => {
@@ -237,7 +252,7 @@ describe('Rabbit Controller RPC', () => {
       payload: 42,
     });
 
-    expect(response).toEqual({ message: 42 });
+    expect(response).toEqual({ data: { message: 42 }, error: null });
   });
 
   it('SUBMODULE: piped RPC handler should receive a RPC error response', async () => {
@@ -247,8 +262,7 @@ describe('Rabbit Controller RPC', () => {
       payload: 41,
     });
 
-    expect(response).toHaveProperty('message');
-    expect(response).toMatchObject({ status: 'error' });
+    expect(response).toMatchObject({ data: null, error: expect.any(Object) });
   });
 
   it('SUBMODULE: piped RPC handler should receive a RPC response', async () => {
@@ -258,7 +272,7 @@ describe('Rabbit Controller RPC', () => {
       payload: 42,
     });
 
-    expect(response).toEqual({ message: 42 });
+    expect(response).toEqual({ data: { message: 42 }, error: null });
   });
 
   it('SUBMODULE: error reply RPC handler with non-JSON message should return an RPC error response', async () => {
@@ -268,8 +282,7 @@ describe('Rabbit Controller RPC', () => {
       payload: Buffer.from('{a:'),
     });
 
-    expect(response).toHaveProperty('message');
-    expect(response).toMatchObject({ status: 'error' });
+    expect(response).toMatchObject({ data: null, error: expect.any(Object) });
   });
 
   it('SUBMODULE: non-JSON RPC handler with should receive a valid RPC response', async () => {
@@ -281,7 +294,10 @@ describe('Rabbit Controller RPC', () => {
       },
     });
 
-    expect(response).toEqual({ echo: { request: 'val' } });
+    expect(response).toEqual({
+      data: { echo: { request: 'val' } },
+      error: null,
+    });
   });
 
   it('SUBMODULE: non-JSON RPC handler with undefined message should receive a valid RPC response', async () => {
@@ -291,7 +307,7 @@ describe('Rabbit Controller RPC', () => {
       payload: Buffer.alloc(0),
     });
 
-    expect(response).toEqual({ echo: '' });
+    expect(response).toEqual({ data: { echo: '' }, error: null });
   });
 
   it('SUBMODULE: non-JSON RPC handler with unparsable message should receive a valid RPC response', async () => {
@@ -301,7 +317,7 @@ describe('Rabbit Controller RPC', () => {
       payload: Buffer.from('{a:'),
     });
 
-    expect(response).toEqual({ echo: '{a:' });
+    expect(response).toEqual({ data: { echo: '{a:' }, error: null });
   });
 
   it('SUBMODULE: hash wildcard RPC handler should receive a valid RPC response', async () => {
@@ -311,7 +327,10 @@ describe('Rabbit Controller RPC', () => {
     });
 
     expect(response).toEqual({
-      message: 'success-hash-wildcard-rpc-submodule.#',
+      data: {
+        message: 'success-hash-wildcard-rpc-submodule.#',
+      },
+      error: null,
     });
   });
 
@@ -322,7 +341,10 @@ describe('Rabbit Controller RPC', () => {
     });
 
     expect(response).toEqual({
-      message: 'success-star-wildcard-rpc-submodule.*.end',
+      data: {
+        message: 'success-star-wildcard-rpc-submodule.*.end',
+      },
+      error: null,
     });
   });
 });

@@ -209,8 +209,11 @@ describe('Rabbit Multiple Channels', () => {
     });
 
     expect(response).toEqual({
-      response: 'hi',
-      payload,
+      data: {
+        response: 'hi',
+        payload,
+      },
+      error: null,
     });
   });
 
@@ -235,8 +238,11 @@ describe('Rabbit Multiple Channels', () => {
     });
 
     expect(response).toEqual({
-      response: 'bonjour',
-      payload,
+      data: {
+        response: 'bonjour',
+        payload,
+      },
+      error: null,
     });
   });
 
@@ -261,8 +267,11 @@ describe('Rabbit Multiple Channels', () => {
     });
 
     expect(response).toEqual({
-      response: 'yasou',
-      payload,
+      data: {
+        response: 'yasou',
+        payload,
+      },
+      error: null,
     });
   });
 
@@ -298,6 +307,8 @@ describe('Rabbit Multiple Channels', () => {
       ),
     );
 
-    expect(response).toEqual(numbers.map((n) => ({ actual: n, received: n })));
+    expect(response).toEqual(
+      numbers.map((n) => ({ data: { actual: n, received: n }, error: null })),
+    );
   });
 });
